@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SF Neighborhoods: Crime & School Athletic Access</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  body { margin:0; padding:0; font-family: Arial, sans-serif; }
+  #map { width:100%; height:100vh; }
+  .legend {
+    background: white; padding: 12px 16px; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25); line-height: 1.8;
+    font-size: 13px; min-width: 200px;
+  }
+  .legend h4 { margin: 0 0 8px 0; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  .legend h5 { margin: 10px 0 4px 0; font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; border:1px solid rgba(0,0,0,0.2); vertical-align:middle; }
+  .swatch { display:inline-block; width:14px; height:14px; margin-right:6px; vertical-align:middle; opacity:0.75; }
+  .info-panel {
+    background: white; padding: 12px 16px; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-size: 12px;
+    min-width: 230px; max-width: 260px; pointer-events: none;
+  }
+  .info-panel h4 { margin: 0 0 2px 0; font-size: 14px; font-weight: bold; }
+  .info-panel .subtitle { font-size: 11px; color: #777; margin-bottom: 8px; }
+  .info-panel .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: #999; margin: 8px 0 3px 0; border-top: 1px solid #eee; padding-top: 6px;
+  }
+  .info-panel .stat { display:flex; justify-content:space-between; gap:8px; margin: 2px 0; }
+  .info-panel .val { font-weight: bold; }
+  .info-panel .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 10px;
+    font-size: 10px; font-weight: bold; color: #fff; margin-top: 4px;
+  }
+  .info-panel .bar-wrap { background:#f0f0f0; border-radius:4px; height:7px; width:100%; margin-top:2px; }
+  .info-panel .bar-fill { height:7px; border-radius:4px; background:#3498db; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const SCHOOLS = [{"name": "Academy (The)- SF @McAteer", "neighborhood": "Glen Park", "lat": 37.745874, "lon": -122.449984, "cluster": "High Access Zone", "facilities": 26, "acres": 244.1, "state_titles": 0, "regional_titles": 0, "total_titles": 0, "athletes": 182, "participation": 57.4}, {"name": "Balboa High", "neighborhood": "Outer Mission", "lat": 37.722073, "lon": -122.439853, "cluster": "Mid Access Zone", "facilities": 13, "acres": 95.4, "state_titles": 2, "regional_titles": 6, "total_titles": 8, "athletes": 323, "participation": 25.2}, {"name": "Burton (Phillip and Sala) Academic High", "neighborhood": "Portola", "lat": 37.720698, "lon": -122.405071, "cluster": "Zone 4", "facilities": 13, "acres": 374.1, "state_titles": 0, "regional_titles": 0, "total_titles": 0, "athletes": 228, "participation": 21.6}, {"name": "Galileo High", "neighborhood": "Russian Hill", "lat": 37.803401, "lon": -122.424082, "cluster": "Mid Access Zone", "facilities": 20, "acres": 208.3, "state_titles": 1, "regional_titles": 18, "total_titles": 19, "athletes": 346, "participation": 18.9}, {"name": "Jordan (June) School for Equity", "neighborhood": "McLaren Park", "lat": 37.719997, "lon": -122.425502, "cluster": "Zone 4", "facilities": 7, "acres": 372.5, "state_titles": 0, "regional_titles": 0, "total_titles": 0, "athletes": 13, "participation": 6.5}, {"name": "Lincoln (Abraham) High", "neighborhood": "Sunset/Parkside", "lat": 37.747259, "lon": -122.481322, "cluster": "Mid Access Zone", "facilities": 15, "acres": 132.9, "state_titles": 3, "regional_titles": 58, "total_titles": 61, "athletes": 404, "participation": 20.2}, {"name": "Lowell High", "neighborhood": "Lakeshore", "lat": 37.731044, "lon": -122.483559, "cluster": "Low Access Zone", "facilities": 11, "acres": 713.0, "state_titles": 3, "regional_titles": 336, "total_titles": 339, "athletes": 505, "participation": 19.1}, {"name": "Marshall (Thurgood) High", "neighborhood": "Bayview Hunters Point", "lat": 37.735717, "lon": -122.401881, "cluster": "Mid Access Zone", "facilities": 17, "acres": 67.2, "state_titles": 0, "regional_titles": 2, "total_titles": 2, "athletes": 54, "participation": 11.7}, {"name": "Mission High", "neighborhood": "Castro/Upper Market", "lat": 37.761403, "lon": -122.427287, "cluster": "High Access Zone", "facilities": 28, "acres": 93.0, "state_titles": 1, "regional_titles": 19, "total_titles": 20, "athletes": 186, "participation": 17.7}, {"name": "O'Connell (John) High", "neighborhood": "Mission", "lat": 37.759631, "lon": -122.414687, "cluster": "High Access Zone", "facilities": 28, "acres": 62.7, "state_titles": 0, "regional_titles": 1, "total_titles": 1, "athletes": 67, "participation": 13.1}, {"name": "S.F. International High", "neighborhood": "Potrero Hill", "lat": 37.76172, "lon": -122.400623, "cluster": "Mid Access Zone", "facilities": 20, "acres": 69.2, "state_titles": 0, "regional_titles": 1, "total_titles": 1, "athletes": 104, "participation": 25.6}, {"name": "Wallenberg (Raoul) Traditional High", "neighborhood": "Lone Mountain/USF", "lat": 37.780171, "lon": -122.445755, "cluster": "Mid Access Zone", "facilities": 20, "acres": 222.0, "state_titles": 0, "regional_titles": 2, "total_titles": 2, "athletes": 87, "participation": 15.8}, {"name": "Washington (George) High", "neighborhood": "Outer Richmond", "lat": 37.777781, "lon": -122.492032, "cluster": "Low Access Zone", "facilities": 12, "acres": 799.4, "state_titles": 1, "regional_titles": 48, "total_titles": 49, "athletes": 398, "participation": 19.5}];
+const NH_DATA = {"Bayview Hunters Point": {"cluster": "High Crime", "total": 5023, "violent": 817, "property": 1510, "drug": 264}, "Bernal Heights": {"cluster": "Moderate \u2014 Higher Crime", "total": 1420, "violent": 222, "property": 568, "drug": 70}, "Castro/Upper Market": {"cluster": "Moderate \u2014 Higher Crime", "total": 1915, "violent": 197, "property": 986, "drug": 99}, "Chinatown": {"cluster": "Moderate \u2014 Higher Crime", "total": 1529, "violent": 186, "property": 562, "drug": 53}, "Excelsior": {"cluster": "Moderate \u2014 Higher Crime", "total": 1234, "violent": 183, "property": 449, "drug": 58}, "Financial District/South Beach": {"cluster": "High Crime", "total": 3857, "violent": 458, "property": 1753, "drug": 160}, "Glen Park": {"cluster": "Moderate \u2014 Higher Crime", "total": 322, "violent": 29, "property": 162, "drug": 13}, "Golden Gate Park": {"cluster": "Green & Moderate Crime", "total": 596, "violent": 55, "property": 255, "drug": 20}, "Haight Ashbury": {"cluster": "Moderate \u2014 Higher Crime", "total": 1071, "violent": 112, "property": 547, "drug": 74}, "Hayes Valley": {"cluster": "Moderate \u2014 Higher Crime", "total": 1735, "violent": 162, "property": 895, "drug": 111}, "Inner Richmond": {"cluster": "Moderate \u2014 Higher Crime", "total": 707, "violent": 61, "property": 305, "drug": 21}, "Inner Sunset": {"cluster": "Moderate \u2014 Higher Crime", "total": 751, "violent": 57, "property": 389, "drug": 9}, "Japantown": {"cluster": "Moderate \u2014 Higher Crime", "total": 322, "violent": 46, "property": 149, "drug": 10}, "Lakeshore": {"cluster": "Green & Moderate Crime", "total": 1229, "violent": 118, "property": 715, "drug": 44}, "Lincoln Park": {"cluster": "Safest (Less Green)", "total": 42, "violent": 1, "property": 21, "drug": 1}, "Lone Mountain/USF": {"cluster": "Moderate \u2014 Higher Crime", "total": 908, "violent": 62, "property": 423, "drug": 35}, "Marina": {"cluster": "Moderate \u2014 Higher Crime", "total": 1552, "violent": 140, "property": 816, "drug": 36}, "McLaren Park": {"cluster": "Safest (Less Green)", "total": 72, "violent": 21, "property": 22, "drug": 0}, "Mission": {"cluster": "High Crime", "total": 9919, "violent": 1402, "property": 2573, "drug": 2085}, "Mission Bay": {"cluster": "Moderate \u2014 Higher Crime", "total": 1482, "violent": 203, "property": 543, "drug": 67}, "Nob Hill": {"cluster": "Moderate \u2014 Higher Crime", "total": 2232, "violent": 282, "property": 994, "drug": 132}, "Noe Valley": {"cluster": "Moderate \u2014 Higher Crime", "total": 1063, "violent": 35, "property": 652, "drug": 27}, "North Beach": {"cluster": "Moderate \u2014 Higher Crime", "total": 1237, "violent": 160, "property": 589, "drug": 40}, "Oceanview/Merced/Ingleside": {"cluster": "Moderate \u2014 Higher Crime", "total": 603, "violent": 69, "property": 241, "drug": 19}, "Outer Mission": {"cluster": "Moderate \u2014 Higher Crime", "total": 989, "violent": 151, "property": 340, "drug": 43}, "Outer Richmond": {"cluster": "Moderate \u2014 Higher Crime", "total": 1220, "violent": 114, "property": 568, "drug": 36}, "Pacific Heights": {"cluster": "Moderate \u2014 Higher Crime", "total": 1261, "violent": 60, "property": 815, "drug": 23}, "Portola": {"cluster": "Moderate \u2014 Higher Crime", "total": 747, "violent": 125, "property": 307, "drug": 29}, "Potrero Hill": {"cluster": "Moderate \u2014 Higher Crime", "total": 1005, "violent": 73, "property": 452, "drug": 165}, "Presidio": {"cluster": "Safest (Less Green)", "total": 42, "violent": 2, "property": 21, "drug": 0}, "Presidio Heights": {"cluster": "Moderate \u2014 Higher Crime", "total": 399, "violent": 23, "property": 217, "drug": 6}, "Russian Hill": {"cluster": "Moderate \u2014 Higher Crime", "total": 1010, "violent": 77, "property": 575, "drug": 19}, "Seacliff": {"cluster": "Safest (Less Green)", "total": 71, "violent": 4, "property": 36, "drug": 2}, "South of Market": {"cluster": "High Crime", "total": 9857, "violent": 1213, "property": 2898, "drug": 1763}, "Sunset/Parkside": {"cluster": "Moderate \u2014 Higher Crime", "total": 2224, "violent": 192, "property": 930, "drug": 51}, "Tenderloin": {"cluster": "High Crime", "total": 11312, "violent": 1489, "property": 1994, "drug": 2631}, "Twin Peaks": {"cluster": "Safest (Less Green)", "total": 237, "violent": 10, "property": 131, "drug": 3}, "Visitacion Valley": {"cluster": "Moderate \u2014 Higher Crime", "total": 670, "violent": 149, "property": 208, "drug": 27}, "West of Twin Peaks": {"cluster": "Moderate \u2014 Higher Crime", "total": 1264, "violent": 105, "property": 580, "drug": 30}, "Western Addition": {"cluster": "Moderate \u2014 Higher Crime", "total": 2262, "violent": 310, "property": 955, "drug": 144}};
+const GEO = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Tenderloin"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4194, 37.7849], [-122.4071, 37.7849], [-122.4071, 37.778], [-122.4194, 37.778], [-122.4194, 37.7849]]]}}, {"type": "Feature", "properties": {"name": "Mission"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.7699], [-122.405, 37.7699], [-122.405, 37.748], [-122.427, 37.748], [-122.427, 37.7699]]]}}, {"type": "Feature", "properties": {"name": "South of Market"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4194, 37.7849], [-122.39, 37.7849], [-122.39, 37.7699], [-122.4194, 37.7699], [-122.4194, 37.7849]]]}}, {"type": "Feature", "properties": {"name": "Bayview Hunters Point"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.405, 37.748], [-122.37, 37.748], [-122.37, 37.72], [-122.405, 37.72], [-122.405, 37.748]]]}}, {"type": "Feature", "properties": {"name": "Financial District/South Beach"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4071, 37.798], [-122.39, 37.798], [-122.39, 37.7849], [-122.4071, 37.7849], [-122.4071, 37.798]]]}}, {"type": "Feature", "properties": {"name": "Western Addition"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.45, 37.7849], [-122.427, 37.7849], [-122.427, 37.7699], [-122.45, 37.7699], [-122.45, 37.7849]]]}}, {"type": "Feature", "properties": {"name": "Nob Hill"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4194, 37.798], [-122.4071, 37.798], [-122.4071, 37.7849], [-122.4194, 37.7849], [-122.4194, 37.798]]]}}, {"type": "Feature", "properties": {"name": "Sunset/Parkside"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.76], [-122.46, 37.76], [-122.46, 37.73], [-122.51, 37.73], [-122.51, 37.76]]]}}, {"type": "Feature", "properties": {"name": "Castro/Upper Market"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.445, 37.765], [-122.427, 37.765], [-122.427, 37.753], [-122.445, 37.753], [-122.445, 37.765]]]}}, {"type": "Feature", "properties": {"name": "Hayes Valley"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.778], [-122.4194, 37.778], [-122.4194, 37.7699], [-122.427, 37.7699], [-122.427, 37.778]]]}}, {"type": "Feature", "properties": {"name": "Marina"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.45, 37.808], [-122.427, 37.808], [-122.427, 37.798], [-122.45, 37.798], [-122.45, 37.808]]]}}, {"type": "Feature", "properties": {"name": "Chinatown"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4071, 37.798], [-122.4, 37.798], [-122.4, 37.793], [-122.4071, 37.793], [-122.4071, 37.798]]]}}, {"type": "Feature", "properties": {"name": "Mission Bay"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.398, 37.7699], [-122.38, 37.7699], [-122.38, 37.758], [-122.398, 37.758], [-122.398, 37.7699]]]}}, {"type": "Feature", "properties": {"name": "Bernal Heights"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.748], [-122.405, 37.748], [-122.405, 37.735], [-122.427, 37.735], [-122.427, 37.748]]]}}, {"type": "Feature", "properties": {"name": "West of Twin Peaks"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.753], [-122.445, 37.753], [-122.445, 37.735], [-122.47, 37.735], [-122.47, 37.753]]]}}, {"type": "Feature", "properties": {"name": "Pacific Heights"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.45, 37.798], [-122.427, 37.798], [-122.427, 37.7849], [-122.45, 37.7849], [-122.45, 37.798]]]}}, {"type": "Feature", "properties": {"name": "North Beach"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4194, 37.808], [-122.4071, 37.808], [-122.4071, 37.798], [-122.4194, 37.798], [-122.4194, 37.808]]]}}, {"type": "Feature", "properties": {"name": "Excelsior"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.445, 37.735], [-122.427, 37.735], [-122.427, 37.72], [-122.445, 37.72], [-122.445, 37.735]]]}}, {"type": "Feature", "properties": {"name": "Lakeshore"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.73], [-122.47, 37.73], [-122.47, 37.71], [-122.51, 37.71], [-122.51, 37.73]]]}}, {"type": "Feature", "properties": {"name": "Outer Richmond"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.785], [-122.47, 37.785], [-122.47, 37.77], [-122.51, 37.77], [-122.51, 37.785]]]}}, {"type": "Feature", "properties": {"name": "Haight Ashbury"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.45, 37.7699], [-122.427, 37.7699], [-122.427, 37.758], [-122.45, 37.758], [-122.45, 37.7699]]]}}, {"type": "Feature", "properties": {"name": "Noe Valley"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.753], [-122.405, 37.753], [-122.405, 37.742], [-122.427, 37.742], [-122.427, 37.753]]]}}, {"type": "Feature", "properties": {"name": "Russian Hill"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.4194, 37.801], [-122.4071, 37.801], [-122.4071, 37.793], [-122.4194, 37.793], [-122.4194, 37.801]]]}}, {"type": "Feature", "properties": {"name": "Potrero Hill"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.405, 37.758], [-122.39, 37.758], [-122.39, 37.746], [-122.405, 37.746], [-122.405, 37.758]]]}}, {"type": "Feature", "properties": {"name": "Outer Mission"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.445, 37.72], [-122.427, 37.72], [-122.427, 37.708], [-122.445, 37.708], [-122.445, 37.72]]]}}, {"type": "Feature", "properties": {"name": "Lone Mountain/USF"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.78], [-122.45, 37.78], [-122.45, 37.7699], [-122.47, 37.7699], [-122.47, 37.78]]]}}, {"type": "Feature", "properties": {"name": "Inner Sunset"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.765], [-122.45, 37.765], [-122.45, 37.753], [-122.47, 37.753], [-122.47, 37.765]]]}}, {"type": "Feature", "properties": {"name": "Portola"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.735], [-122.405, 37.735], [-122.405, 37.72], [-122.427, 37.72], [-122.427, 37.735]]]}}, {"type": "Feature", "properties": {"name": "Inner Richmond"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.785], [-122.45, 37.785], [-122.45, 37.77], [-122.47, 37.77], [-122.47, 37.785]]]}}, {"type": "Feature", "properties": {"name": "Visitacion Valley"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.427, 37.72], [-122.405, 37.72], [-122.405, 37.708], [-122.427, 37.708], [-122.427, 37.72]]]}}, {"type": "Feature", "properties": {"name": "Oceanview/Merced/Ingleside"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.735], [-122.445, 37.735], [-122.445, 37.72], [-122.47, 37.72], [-122.47, 37.735]]]}}, {"type": "Feature", "properties": {"name": "Golden Gate Park"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.77], [-122.46, 37.77], [-122.46, 37.762], [-122.51, 37.762], [-122.51, 37.77]]]}}, {"type": "Feature", "properties": {"name": "Presidio Heights"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.47, 37.79], [-122.45, 37.79], [-122.45, 37.78], [-122.47, 37.78], [-122.47, 37.79]]]}}, {"type": "Feature", "properties": {"name": "Glen Park"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.438, 37.742], [-122.427, 37.742], [-122.427, 37.732], [-122.438, 37.732], [-122.438, 37.742]]]}}, {"type": "Feature", "properties": {"name": "Japantown"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.431, 37.787], [-122.427, 37.787], [-122.427, 37.782], [-122.431, 37.782], [-122.431, 37.787]]]}}, {"type": "Feature", "properties": {"name": "Twin Peaks"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.45, 37.753], [-122.438, 37.753], [-122.438, 37.742], [-122.45, 37.742], [-122.45, 37.753]]]}}, {"type": "Feature", "properties": {"name": "McLaren Park"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.42, 37.72], [-122.405, 37.72], [-122.405, 37.708], [-122.42, 37.708], [-122.42, 37.72]]]}}, {"type": "Feature", "properties": {"name": "Seacliff"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.5, 37.79], [-122.487, 37.79], [-122.487, 37.782], [-122.5, 37.782], [-122.5, 37.79]]]}}, {"type": "Feature", "properties": {"name": "Lincoln Park"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.79], [-122.5, 37.79], [-122.5, 37.782], [-122.51, 37.782], [-122.51, 37.79]]]}}, {"type": "Feature", "properties": {"name": "Presidio"}, "geometry": {"type": "Polygon", "coordinates": [[[-122.51, 37.808], [-122.45, 37.808], [-122.45, 37.79], [-122.51, 37.79], [-122.51, 37.808]]]}}]};
+
+// ── Colour schemes ────────────────────────────────────────────────────────────
+const CRIME_COLORS = {
+  "High Crime":              "#c0392b",
+  "Moderate — Higher Crime": "#e67e22",
+  "Green & Moderate Crime":  "#27ae60",
+  "Safest (Less Green)":     "#2980b9",
+};
+
+const SCHOOL_COLORS = {
+  "High Access Zone": "#8e44ad",
+  "Mid Access Zone":  "#f39c12",
+  "Low Access Zone":  "#e74c3c",
+  "Zone 4":           "#7f8c8d",
+};
+
+// ── Map init ──────────────────────────────────────────────────────────────────
+const map = L.map('map', { center: [37.757, -122.447], zoom: 12 });
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  maxZoom: 18
+}).addTo(map);
+
+// ── Info panel (hover) ────────────────────────────────────────────────────────
+const info = L.control({ position: 'topright' });
+info.onAdd = function() {
+  this._div = L.DomUtil.create('div','info-panel');
+  this._div.innerHTML = '<h4 style="color:#aaa;font-weight:normal">Hover a neighborhood<br>or school</h4>';
+  return this._div;
+};
+
+info.showNeighborhood = function(name, d) {
+  const crimeColors = {"High Crime":"#c0392b","Moderate — Higher Crime":"#e67e22",
+                       "Green & Moderate Crime":"#27ae60","Safest (Less Green)":"#2980b9"};
+  const col = crimeColors[d.cluster] || '#888';
+  const maxTotal = 11312;
+  const pct = Math.round((d.total / maxTotal) * 100);
+  this._div.innerHTML = `
+    <h4>${name}</h4>
+    <div class="subtitle">${d.cluster}</div>
+    <div class="section-label">Crime incidents (May 2025–present)</div>
+    <div class="stat"><span>Total</span><span class="val">${d.total.toLocaleString()}</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
+    <div class="stat" style="margin-top:5px"><span>Violent</span><span class="val">${d.violent.toLocaleString()}</span></div>
+    <div class="stat"><span>Property</span><span class="val">${d.property.toLocaleString()}</span></div>
+    <div class="stat"><span>Drug / Disorder</span><span class="val">${d.drug.toLocaleString()}</span></div>
+  `;
+};
+
+info.showSchool = function(s) {
+  const zoneColors = {"High Access Zone":"#8e44ad","Mid Access Zone":"#f39c12",
+                      "Low Access Zone":"#e74c3c","Zone 4":"#7f8c8d"};
+  const col = zoneColors[s.cluster] || '#888';
+  const maxAth = 505;
+  const athPct = Math.round((s.athletes / maxAth) * 100);
+  const titleRows = s.total_titles > 0
+    ? `<div class="stat"><span>🏆 State titles</span><span class="val">${s.state_titles}</span></div>
+       <div class="stat"><span>🥈 Regional titles</span><span class="val">${s.regional_titles}</span></div>
+       <div class="stat"><span>Total titles</span><span class="val">${s.total_titles}</span></div>`
+    : `<div style="color:#aaa;font-size:11px;margin-top:2px">No recorded titles</div>`;
+  this._div.innerHTML = `
+    <h4>${s.name}</h4>
+    <div class="subtitle">${s.neighborhood}</div>
+    <span class="badge" style="background:${col}">${s.cluster}</span>
+    <div class="section-label">Student athletes</div>
+    <div class="stat"><span>Athletes</span><span class="val">${s.athletes}</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${athPct}%"></div></div>
+    <div class="stat" style="margin-top:4px"><span>Participation rate</span><span class="val">${s.participation}%</span></div>
+    <div class="section-label">Competitive titles (since 2020)</div>
+    ${titleRows}
+    <div class="section-label">Park access (within 1 mile)</div>
+    <div class="stat"><span>Facilities</span><span class="val">${s.facilities}</span></div>
+    <div class="stat"><span>Green space</span><span class="val">${s.acres} acres</span></div>
+  `;
+};
+
+info.clear = function() {
+  this._div.innerHTML = '<h4 style="color:#aaa;font-weight:normal">Hover a neighborhood<br>or school</h4>';
+};
+
+info.addTo(map);
+
+// ── Neighborhood polygons ─────────────────────────────────────────────────────
+function nhStyle(feature) {
+  const name = feature.properties.name;
+  const d = NH_DATA[name];
+  const fill = d ? (CRIME_COLORS[d.cluster] || '#bdc3c7') : '#ecf0f1';
+  return { fillColor: fill, weight: 1.5, color: '#fff', fillOpacity: 0.65 };
+}
+
+L.geoJSON(GEO, {
+  style: nhStyle,
+  onEachFeature: function(feature, layer) {
+    const name = feature.properties.name;
+    layer.on({
+      mouseover: function(e) {
+        e.target.setStyle({ weight: 3, fillOpacity: 0.85 });
+        info.showNeighborhood(name, NH_DATA[name]);
+      },
+      mouseout: function(e) {
+        e.target.setStyle(nhStyle(feature));
+        info.clear();
+      }
+    });
+  }
+}).addTo(map);
+
+// ── School dots ───────────────────────────────────────────────────────────────
+const minAthletes = Math.min(...SCHOOLS.map(s => s.athletes));
+const maxAthletes = Math.max(...SCHOOLS.map(s => s.athletes));
+const MIN_R = 6, MAX_R = 20;
+
+function athleteRadius(n) {
+  const t = (Math.sqrt(n) - Math.sqrt(minAthletes)) /
+            (Math.sqrt(maxAthletes) - Math.sqrt(minAthletes));
+  return MIN_R + t * (MAX_R - MIN_R);
+}
+
+SCHOOLS.forEach(s => {
+  const color  = SCHOOL_COLORS[s.cluster] || '#333';
+  const radius = athleteRadius(s.athletes);
+  const marker = L.circleMarker([s.lat, s.lon], {
+    radius, fillColor: color, color: '#fff',
+    weight: 2, fillOpacity: 0.92
+  }).addTo(map);
+
+  marker.on('mouseover', function() { info.showSchool(s); });
+  marker.on('mouseout',  function() { info.clear(); });
+});
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+const legend = L.control({ position: 'bottomleft' });
+legend.onAdd = function() {
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML = `
+    <h4>SF Crime & School Access Map</h4>
+
+    <h5>Neighborhood Crime Level</h5>
+    ${Object.entries(CRIME_COLORS).map(([k,v]) =>
+      `<div><span class="swatch" style="background:${v}"></span>${k}</div>`
+    ).join('')}
+
+    <h5>School Facility Access Zone</h5>
+    ${Object.entries(SCHOOL_COLORS).map(([k,v]) =>
+      `<div><span class="dot" style="background:${v}"></span>${k}</div>`
+    ).join('')}
+
+    <h5>Dot Size = # Athletes</h5>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+      <svg width="52" height="48" style="overflow:visible">
+        <circle cx="8"  cy="40" r="6"  fill="#aaa" stroke="#fff" stroke-width="1.5"/>
+        <circle cx="26" cy="34" r="13" fill="#aaa" stroke="#fff" stroke-width="1.5"/>
+        <circle cx="44" cy="26" r="20" fill="#aaa" stroke="#fff" stroke-width="1.5"/>
+      </svg>
+      <div style="font-size:11px;color:#555;line-height:1.8">
+        Small ≈ 13<br>
+        Large ≈ 505
+      </div>
+    </div>
+
+    <div style="margin-top:10px;font-size:10px;color:#888">
+      Click school dots for details.<br>Hover neighborhoods for crime stats.
+    </div>
+  `;
+  return div;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>

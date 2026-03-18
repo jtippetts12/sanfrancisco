@@ -1,0 +1,41 @@
+neighborhood,cluster,cluster_label,n_facilities,total_acres,total_incidents,violent_incidents,property_incidents,drug_disorder_incidents
+Bayview Hunters Point,2,High Crime,18,103.44328098,5023,817,1510,264
+Bernal Heights,0,Moderate — Higher Crime,14,52.85224941,1420,222,568,70
+Castro/Upper Market,0,Moderate — Higher Crime,9,36.34242101,1915,197,986,99
+Chinatown,0,Moderate — Higher Crime,4,5.25064554,1529,186,562,53
+Excelsior,0,Moderate — Higher Crime,4,339.25609041,1234,183,449,58
+Financial District/South Beach,2,High Crime,7,15.87187475,3857,458,1753,160
+Glen Park,0,Moderate — Higher Crime,11,90.49201993999999,322,29,162,13
+Golden Gate Park,3,Green & Moderate Crime,8,1108.8564730800001,596,55,255,20
+Haight Ashbury,0,Moderate — Higher Crime,4,45.20887759,1071,112,547,74
+Hayes Valley,0,Moderate — Higher Crime,8,18.84783793,1735,162,895,111
+Inner Richmond,0,Moderate — Higher Crime,4,34.51905187,707,61,305,21
+Inner Sunset,0,Moderate — Higher Crime,9,38.35437681,751,57,389,9
+Japantown,0,Moderate — Higher Crime,3,5.35747696,322,46,149,10
+Lakeshore,3,Green & Moderate Crime,4,820.75090707,1229,118,715,44
+Lincoln Park,1,Safest (Less Green),1,112.82207948,42,1,21,1
+Lone Mountain/USF,0,Moderate — Higher Crime,1,7.08433275,908,62,423,35
+Marina,0,Moderate — Higher Crime,5,198.97752508,1552,140,816,36
+McLaren Park,1,Safest (Less Green),4,356.87466943000004,72,21,22,0
+Mission,2,High Crime,17,27.31072747,9919,1402,2573,2085
+Mission Bay,0,Moderate — Higher Crime,2,28.791148059999998,1482,203,543,67
+Nob Hill,0,Moderate — Higher Crime,4,2.96961873,2232,282,994,132
+Noe Valley,0,Moderate — Higher Crime,8,15.047696160000001,1063,35,652,27
+North Beach,0,Moderate — Higher Crime,4,10.541574780000001,1237,160,589,40
+Oceanview/Merced/Ingleside,0,Moderate — Higher Crime,6,17.30603965,603,69,241,19
+Outer Mission,0,Moderate — Higher Crime,6,29.39698508,989,151,340,43
+Outer Richmond,0,Moderate — Higher Crime,13,430.98284551999996,1220,114,568,36
+Pacific Heights,0,Moderate — Higher Crime,5,26.46305606,1261,60,815,23
+Portola,0,Moderate — Higher Crime,2,283.41689791,747,125,307,29
+Potrero Hill,0,Moderate — Higher Crime,8,23.25492336,1005,73,452,165
+Presidio,1,Safest (Less Green),5,230.94406955000002,42,2,21,0
+Presidio Heights,0,Moderate — Higher Crime,3,14.47906069,399,23,217,6
+Russian Hill,0,Moderate — Higher Crime,9,4.2360602,1010,77,575,19
+Seacliff,1,Safest (Less Green),2,133.20836846,71,4,36,2
+South of Market,2,High Crime,3,4.13729069,9857,1213,2898,1763
+Sunset/Parkside,0,Moderate — Higher Crime,10,323.96927958,2224,192,930,51
+Tenderloin,2,High Crime,8,11.1223141,11312,1489,1994,2631
+Twin Peaks,1,Safest (Less Green),6,81.66040782,237,10,131,3
+Visitacion Valley,0,Moderate — Higher Crime,5,291.70263264,670,149,208,27
+West of Twin Peaks,0,Moderate — Higher Crime,15,145.4064789,1264,105,580,30
+Western Addition,0,Moderate — Higher Crime,7,20.73167402,2262,310,955,144
